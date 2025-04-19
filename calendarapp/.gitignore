@@ -45,4 +45,4 @@ app.*.map.json
 /android/app/release
 
 # No Commit  Flies
-/client_secret_1096083023432-667ja4a5crsbucphojm2n40pga3qslf7.apps.googleusercontent.com.json
+*.json
