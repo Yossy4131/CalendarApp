@@ -1,16 +1,93 @@
-# calendarapp
+# 要件定義書
 
-A new Flutter project.
+## プロジェクト名
+**Googleカレンダー風アプリケーション**
 
-## Getting Started
+---
 
-This project is a starting point for a Flutter application.
+## プロジェクト概要
+Flutterを使用してGoogleカレンダーのような機能を持つカレンダーアプリを開発します。このアプリは、ユーザーがイベントを追加、表示、管理できるシンプルなカレンダー機能を提供します。
 
-A few resources to get you started if this is your first Flutter project:
+---
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## 機能要件
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### 1. カレンダー表示
+- 月単位でカレンダーを表示する。
+- 現在の日付を強調表示する。
+- ユーザーが日付を選択できる。
+
+### 2. イベント管理
+- **イベント追加**:
+  - 選択した日付にイベントを追加する。
+  - イベント名を入力するためのダイアログを表示する。
+- **イベント表示**:
+  - 選択した日付に関連付けられたイベントをリスト形式で表示する。
+- **イベント削除**（将来的な拡張）:
+  - イベントを削除する機能を追加予定。
+
+### 3. データ保存
+- アプリを再起動してもイベントデータが保持されるようにする。
+- ローカルストレージ（例: `shared_preferences`）を使用してデータを保存する。
+
+### 4. ユーザーインターフェース
+- **アプリバー**:
+  - アプリ名を表示する。
+- **フローティングアクションボタン**:
+  - イベント追加のためのボタンを提供する。
+- **リストビュー**:
+  - 選択した日付のイベントをリスト形式で表示する。
+
+---
+
+## 非機能要件
+- **パフォーマンス**:
+  - カレンダーの操作がスムーズであること。
+- **拡張性**:
+  - 将来的に通知機能やクラウド同期機能を追加できる設計にする。
+- **プラットフォーム**:
+  - AndroidおよびiOSで動作する。
+
+---
+
+## 技術要件
+- **プログラミング言語**: Dart
+- **フレームワーク**: Flutter
+- **パッケージ**:
+  - `table_calendar`: カレンダー表示用
+  - `shared_preferences`（将来的に追加予定）: データ保存用
+- **開発環境**:
+  - Visual Studio Code
+  - Flutter SDK
+
+---
+
+## 制約条件
+- **開発期間**: 2週間
+- **開発者**: 1名
+- **データ保存**: ローカルストレージのみ（クラウド同期は対象外）。
+
+---
+
+## テスト要件
+- **ユニットテスト**:
+  - イベント追加機能のテスト。
+  - カレンダーの日付選択機能のテスト。
+- **ウィジェットテスト**:
+  - UIコンポーネントが正しく動作することを確認する。
+
+---
+
+## 将来的な拡張
+- イベントの編集・削除機能。
+- 通知機能（例: イベントリマインダー）。
+- クラウド同期機能（Googleカレンダーとの連携）。
+- 週表示や日表示の追加。
+
+---
+
+## 参考資料
+- [Flutter公式ドキュメント](https://flutter.dev/docs)
+- [TableCalendarパッケージ](https://pub.dev/packages/table_calendar)
+
+---
