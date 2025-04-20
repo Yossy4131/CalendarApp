@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 void main() {
   runApp(const CalendarApp());
@@ -11,7 +13,7 @@ class CalendarApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Google Calendar Clone',
+      title: 'Local Calendar App',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -30,13 +32,47 @@ class CalendarPage extends StatefulWidget {
 class _CalendarPageState extends State<CalendarPage> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
-  Map<DateTime, List<String>> _events = {};
+  Map<String, List<String>> _events = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadEvents();
+  }
+
+  Future<void> _loadEvents() async {
+    final prefs = await SharedPreferences.getInstance();
+    final storedEvents = prefs.getString('events');
+    if (storedEvents != null) {
+      setState(() {
+        _events = Map<String, List<String>>.from(
+          jsonDecode(storedEvents).map((key, value) =>
+              MapEntry(key, List<String>.from(value as List<dynamic>))),
+        );
+      });
+    }
+  }
+
+  Future<void> _saveEvents() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('events', jsonEncode(_events));
+  }
+
+  void _addEvent(String event) {
+    final key = _selectedDay.toString().split(' ')[0];
+    if (_events[key] == null) {
+      _events[key] = [];
+    }
+    _events[key]!.add(event);
+    _saveEvents();
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Google Calendar Clone'),
+        title: const Text('Local Calendar App'),
       ),
       body: Column(
         children: [
@@ -51,12 +87,15 @@ class _CalendarPageState extends State<CalendarPage> {
                 _focusedDay = focusedDay;
               });
             },
-            eventLoader: (day) => _events[day] ?? [],
+            eventLoader: (day) {
+              final key = day.toString().split(' ')[0];
+              return _events[key] ?? [];
+            },
           ),
           const SizedBox(height: 8.0),
           Expanded(
             child: ListView(
-              children: (_events[_selectedDay] ?? [])
+              children: (_events[_selectedDay.toString().split(' ')[0]] ?? [])
                   .map((event) => ListTile(title: Text(event)))
                   .toList(),
             ),
@@ -64,45 +103,35 @@ class _CalendarPageState extends State<CalendarPage> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _addEvent(context),
+        onPressed: () {
+          final controller = TextEditingController();
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Add Event'),
+              content: TextField(
+                controller: controller,
+                decoration: const InputDecoration(hintText: 'Enter event name'),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    if (controller.text.isNotEmpty) {
+                      _addEvent(controller.text);
+                    }
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Add'),
+                ),
+              ],
+            ),
+          );
+        },
         child: const Icon(Icons.add),
-      ),
-    );
-  }
-
-  void _addEvent(BuildContext context) {
-    TextEditingController eventController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add Event'),
-        content: TextField(
-          controller: eventController,
-          decoration: const InputDecoration(hintText: 'Enter event name'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              if (eventController.text.isNotEmpty) {
-                setState(() {
-                  if (_events[_selectedDay] == null) {
-                    _events[_selectedDay!] = [];
-                  }
-                  _events[_selectedDay]!.add(eventController.text);
-                });
-              }
-              Navigator.pop(context);
-            },
-            child: const Text('Add'),
-          ),
-        ],
       ),
     );
   }
