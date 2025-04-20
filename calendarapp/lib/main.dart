@@ -130,8 +130,31 @@ class _CalendarPageState extends State<CalendarPage> {
               children: (_events[_selectedDay.toString().split(' ')[0]] ?? [])
                   .map((event) => ListTile(
                         title: Text(event['title'] ?? ''),
-                        subtitle: Text(
-                            '${event['time'] ?? ''}\n${event['details'] ?? ''}'),
+                        subtitle: Text('${event['time'] ?? ''}'),
+                        onTap: () {
+                          // スケジュールをタップしたときに詳細画面を表示
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: Text(event['title'] ?? '詳細'),
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('時間: ${event['time'] ?? '未設定'}'),
+                                  const SizedBox(height: 8.0),
+                                  Text('詳細: ${event['details'] ?? 'なし'}'),
+                                ],
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('閉じる'),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                       ))
                   .toList(),
             ),
