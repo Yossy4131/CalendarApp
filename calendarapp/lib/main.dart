@@ -32,7 +32,35 @@ class CalendarPage extends StatefulWidget {
 class _CalendarPageState extends State<CalendarPage> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
-  Map<String, List<String>> _events = {};
+  Map<String, List<Map<String, String>>> _events = {};
+  String? _selectedTime; // ドロップダウンで選択された時間
+
+  final List<String> _timeOptions = [
+    '00:00 AM',
+    '01:00 AM',
+    '02:00 AM',
+    '03:00 AM',
+    '04:00 AM',
+    '05:00 AM',
+    '06:00 AM',
+    '07:00 AM',
+    '08:00 AM',
+    '09:00 AM',
+    '10:00 AM',
+    '11:00 AM',
+    '12:00 PM',
+    '01:00 PM',
+    '02:00 PM',
+    '03:00 PM',
+    '04:00 PM',
+    '05:00 PM',
+    '06:00 PM',
+    '07:00 PM',
+    '08:00 PM',
+    '09:00 PM',
+    '10:00 PM',
+    '11:00 PM',
+  ];
 
   @override
   void initState() {
@@ -45,9 +73,9 @@ class _CalendarPageState extends State<CalendarPage> {
     final storedEvents = prefs.getString('events');
     if (storedEvents != null) {
       setState(() {
-        _events = Map<String, List<String>>.from(
+        _events = Map<String, List<Map<String, String>>>.from(
           jsonDecode(storedEvents).map((key, value) =>
-              MapEntry(key, List<String>.from(value as List<dynamic>))),
+              MapEntry(key, List<Map<String, String>>.from(value as List))),
         );
       });
     }
@@ -58,12 +86,16 @@ class _CalendarPageState extends State<CalendarPage> {
     await prefs.setString('events', jsonEncode(_events));
   }
 
-  void _addEvent(String event) {
+  void _addEvent(String title, String time, String details) {
     final key = _selectedDay.toString().split(' ')[0];
     if (_events[key] == null) {
       _events[key] = [];
     }
-    _events[key]!.add(event);
+    _events[key]!.add({
+      'title': title,
+      'time': time,
+      'details': details,
+    });
     _saveEvents();
     setState(() {});
   }
@@ -96,7 +128,11 @@ class _CalendarPageState extends State<CalendarPage> {
           Expanded(
             child: ListView(
               children: (_events[_selectedDay.toString().split(' ')[0]] ?? [])
-                  .map((event) => ListTile(title: Text(event)))
+                  .map((event) => ListTile(
+                        title: Text(event['title'] ?? ''),
+                        subtitle: Text(
+                            '${event['time'] ?? ''}\n${event['details'] ?? ''}'),
+                      ))
                   .toList(),
             ),
           ),
@@ -104,28 +140,73 @@ class _CalendarPageState extends State<CalendarPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          final controller = TextEditingController();
+          final titleController = TextEditingController();
+          final detailsController = TextEditingController();
+          _selectedTime = _timeOptions.first; // 初期値を設定
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: const Text('Add Event'),
-              content: TextField(
-                controller: controller,
-                decoration: const InputDecoration(hintText: 'Enter event name'),
+              title: const Text('イベントを追加'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: titleController,
+                    decoration: const InputDecoration(hintText: 'タイトル'),
+                  ),
+                  DropdownButtonFormField<String>(
+                    value: _selectedTime,
+                    items: _timeOptions
+                        .map((time) => DropdownMenuItem(
+                              value: time,
+                              child: Text(time),
+                            ))
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedTime = value;
+                      });
+                    },
+                    decoration: const InputDecoration(hintText: '時間'),
+                  ),
+                  TextField(
+                    controller: detailsController,
+                    decoration: const InputDecoration(hintText: '詳細'),
+                  ),
+                ],
               ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel'),
+                  child: const Text('キャンセル'),
                 ),
                 TextButton(
                   onPressed: () {
-                    if (controller.text.isNotEmpty) {
-                      _addEvent(controller.text);
+                    if (titleController.text.isEmpty) {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('エラー'),
+                          content: const Text('タイトルを入力してください。'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('OK'),
+                            ),
+                          ],
+                        ),
+                      );
+                    } else if (_selectedTime != null &&
+                        detailsController.text.isNotEmpty) {
+                      _addEvent(
+                        titleController.text,
+                        _selectedTime!,
+                        detailsController.text,
+                      );
+                      Navigator.pop(context);
                     }
-                    Navigator.pop(context);
                   },
-                  child: const Text('Add'),
+                  child: const Text('追加'),
                 ),
               ],
             ),
